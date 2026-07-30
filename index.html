@@ -193,6 +193,7 @@ h1{ font-size:38px; } h2{ font-size:28px; } h3{ font-size:22px; text-transform:u
   .scorecard,.card{ border-color:#000; }
 }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 <div id="app" class="shell"></div>
@@ -241,6 +242,68 @@ function normalizeMatch(m) {
 }
 function totalPlayers(match, teamKey) { return match.config[teamKey].players.length; }
 function swapStrike(inn) { const t = inn.strikerId; inn.strikerId = inn.nonStrikerId; inn.nonStrikerId = t; }
+
+/* ============ Sound: short tones + spoken word, no audio files needed ============ */
+let __audioCtx = null;
+function playEventSound(kind) {
+  if (kind !== "six" && kind !== "four" && kind !== "out") return;
+  try {
+    __audioCtx = __audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    if (__audioCtx.state === "suspended") __audioCtx.resume();
+    const beep = (freq, dur, delay, type) => {
+      setTimeout(() => {
+        const o = __audioCtx.createOscillator();
+        const g = __audioCtx.createGain();
+        o.type = type || "sine";
+        o.frequency.value = freq;
+        o.connect(g); g.connect(__audioCtx.destination);
+        g.gain.setValueAtTime(0.22, __audioCtx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, __audioCtx.currentTime + dur);
+        o.start(); o.stop(__audioCtx.currentTime + dur);
+      }, delay);
+    };
+    let word = "";
+    if (kind === "six") { beep(523, 0.15, 0); beep(659, 0.15, 120); beep(784, 0.28, 240); word = "Six!"; }
+    else if (kind === "four") { beep(587, 0.16, 0); beep(784, 0.26, 130); word = "Four!"; }
+    else if (kind === "out") { beep(220, 0.32, 0, "sawtooth"); beep(160, 0.36, 190, "sawtooth"); word = "Owwt!"; }
+    if (window.speechSynthesis && word) {
+      const u = new SpeechSynthesisUtterance(word);
+      u.rate = 1.05; u.pitch = kind === "out" ? 0.8 : 1.15; u.volume = 1;
+      setTimeout(() => { try { speechSynthesis.cancel(); speechSynthesis.speak(u); } catch (e) {} }, 260);
+    }
+  } catch (e) { /* audio not available — fail silently */ }
+}
+
+/* ============ PDF: match summary, generated client-side (no server) ============ */
+function generateMatchPDF(m) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const line = (txt, size, bold, gap) => {
+    doc.setFontSize(size || 11);
+    doc.setFont(undefined, bold ? "bold" : "normal");
+    doc.text(String(txt), 14, y);
+    y += gap || 7;
+  };
+  let y = 18;
+  line(m.config.matchName || "Cricket Match", 18, true, 10);
+  line(`${m.config.teamA.name} vs ${m.config.teamB.name}`, 13, true, 8);
+  line(`Toss: ${m.config[m.config.toss.winner === "A" ? "teamA" : "teamB"].name} won, chose ${m.config.toss.decision}`, 10, false, 6);
+  line(`Overs: ${m.config.overs}   Result: ${m.result || "-"}`, 10, false, 10);
+
+  [["innings1", m.battingKey], ["innings2", m.bowlingKey]].forEach(([key, teamKey]) => {
+    const inn = m[key];
+    if (!inn) return;
+    line(`${m.config[teamKey].name} — ${inn.runs}/${inn.wickets} (${fmtOvers(inn.balls)} overs)`, 13, true, 7);
+    line(`Extras — wide ${inn.extras.wide}, no-ball ${inn.extras.noball}, bye ${inn.extras.bye}, leg-bye ${inn.extras.legbye}`, 9, false, 7);
+    m.config[teamKey].players.forEach((p) => {
+      const status = p.out ? `out (${p.dismissal})` : "not out";
+      line(`  ${p.name} — ${status}`, 10, false, 6);
+    });
+    y += 4;
+  });
+
+  doc.save(`${(m.config.matchName || "match").replace(/[^a-z0-9]+/gi, "_")}.pdf`);
+}
 
 function applyDelivery(match, inn, teamKey, { kind, runs }) {
   let legalBall = true;
@@ -389,18 +452,28 @@ function confettiPieces(count) {
   out += `</div>`;
   return out;
 }
-function playerListHTML(match, teamKey, inn) {
-  const players = match.config[teamKey].players;
-  return `
+function playerListHTML(match, teamKey, inn, opts) {
+  opts = opts || {};
+  const bowlingKey = teamKey === match.battingKey ? match.bowlingKey : match.battingKey;
+  const section = (key) => {
+    const players = match.config[key].players;
+    return `
     <div class="card">
-      <div class="eyebrow">Players — ${esc(match.config[teamKey].name)}</div>
+      <div class="eyebrow">Players — ${esc(match.config[key].name)}</div>
       <div class="players">
         ${players.map((p) => `
-          <div class="playerRow ${p.out ? "out" : ""} ${p.id === inn.strikerId || p.id === inn.nonStrikerId ? "batting" : ""}">
-            ${esc(p.name)}${p.id === inn.strikerId ? " 🏏" : ""}${p.out ? ` — out (${esc(p.dismissal)})` : ""}
+          <div class="playerRow ${p.out ? "out" : ""} ${key === teamKey && (p.id === inn.strikerId || p.id === inn.nonStrikerId) ? "batting" : ""}">
+            ${esc(p.name)}${key === teamKey && p.id === inn.strikerId ? " 🏏" : ""}${p.out ? ` — out (${esc(p.dismissal)})` : ""}
           </div>`).join("")}
       </div>
+      ${opts.editable ? `
+      <div class="rowbtns" style="margin-top:10px;">
+        <input id="liveAddPlayer_${key}" class="input" placeholder="Naya player naam" style="margin-bottom:0;flex:1;" onkeydown="if(event.key==='Enter')window.__addLivePlayer('${key}')" />
+        <button class="btn ghost" onclick="window.__addLivePlayer('${key}')">+ Add</button>
+      </div>` : ""}
     </div>`;
+  };
+  return opts.editable ? section(teamKey) + section(bowlingKey) : section(teamKey);
 }
 function topBarHTML(match, opts) {
   return `
@@ -655,6 +728,7 @@ function mountManager(adminCode) {
     if (inn?.lastEvent && inn.lastEvent.id !== lastEventId) {
       lastEventId = inn.lastEvent.id;
       flash = inn.lastEvent;
+      playEventSound(inn.lastEvent.kind);
       render();
       clearTimeout(flashTimer);
       flashTimer = setTimeout(() => { flash = null; render(); }, 1500);
@@ -695,6 +769,14 @@ function mountManager(adminCode) {
   window.__toggleExtra = (kind) => { extraMenu = extraMenu === kind ? null : kind; render(); };
   window.__doExtra = (kind, runs) => { window.__doDelivery(kind, runs); extraMenu = null; render(); };
   window.__togglePlayers = () => { showPlayers = !showPlayers; render(); };
+  window.__addLivePlayer = (teamKey) => {
+    const input = document.getElementById(`liveAddPlayer_${teamKey}`);
+    const name = input?.value.trim();
+    if (!name) return;
+    const m = clone(match);
+    m.config[teamKey].players.push({ id: uid(), name, out: false, dismissal: null });
+    pushState(m);
+  };
 
   window.__openOut = () => {
     const inn = match[currentInnKey()];
@@ -705,7 +787,7 @@ function mountManager(adminCode) {
   window.__setOutSlot = (s) => { outSlot = s; render(); };
   window.__setOutHow = (v) => { outHow = v; };
   window.__setOutRuns = (r) => { outRuns = r; render(); };
-  window.__setNewBat = (v) => { newBatId = v; };
+  window.__setNewBat = (v) => { newBatId = v; render(); };
   window.__submitOut = () => {
     const key = currentInnKey();
     const teamKey = currentTeamKey();
@@ -715,9 +797,23 @@ function mountManager(adminCode) {
     const batSel = document.getElementById("newBatSelect");
     if (batSel) newBatId = batSel.value;
     if (inn.freeHit && outHow !== "run out") { alert("Free hit par sirf run out allowed hai."); return; }
-    if (!newBatId) { alert("Naya batsman chuno."); return; }
+    let newName = "";
+    if (newBatId === "__new__") {
+      const nameInput = document.getElementById("newBatNameInput");
+      newName = nameInput?.value.trim() || "";
+      if (!newName) { alert("Naye batsman ka naam likho."); return; }
+    } else if (!newBatId) {
+      alert("Naya batsman chuno.");
+      return;
+    }
     const m = clone(match);
-    applyWicket(m, m[key], teamKey, { runsBeforeOut: Number(outRuns), dismissedSlot: outSlot, howOut: outHow, newBatsmanId: newBatId });
+    let newBatsmanId = newBatId;
+    if (newBatId === "__new__") {
+      const newPlayer = { id: uid(), name: newName, out: false, dismissal: null };
+      m.config[teamKey].players.push(newPlayer);
+      newBatsmanId = newPlayer.id;
+    }
+    applyWicket(m, m[key], teamKey, { runsBeforeOut: Number(outRuns), dismissedSlot: outSlot, howOut: outHow, newBatsmanId });
     outOpen = false;
     finalize(m, key, teamKey);
   };
@@ -751,8 +847,10 @@ function mountManager(adminCode) {
     navigator.clipboard?.writeText(url);
     alert("Apna Admin link copy ho gaya — isse tum kabhi bhi wapas isi match par aa sakte ho (khud ke paas rakho, kisi aur ko mat do):\n" + url);
   };
+  window.__downloadPDF = () => { try { generateMatchPDF(match); } catch (e) { alert("PDF nahi ban paya: " + e.message); } };
   window.__endLiveAndClear = async () => {
-    if (confirm("Live band karke is match ka data permanently delete karein?")) {
+    if (confirm("Live band karke is match ka data permanently delete karein? (PDF pehle download ho jayega)")) {
+      try { generateMatchPDF(match); } catch (e) { /* still proceed with deletion even if PDF fails */ }
       await remove(ref(db, matchPath(realCode)));
       await remove(ref(db, adminPath(adminCode)));
       location.hash = "#/";
@@ -825,8 +923,8 @@ function mountManager(adminCode) {
             </div>
           </div>
           <div class="noprint rowbtns">
-            <button class="btn primary" onclick="window.print()">📄 Summary Download</button>
-            <button class="btn danger" onclick="window.__endLiveAndClear()">End Live &amp; Clear</button>
+            <button class="btn primary" onclick="window.__downloadPDF()">📄 PDF Download</button>
+            <button class="btn danger" onclick="window.__endLiveAndClear()">End Live &amp; Save History</button>
           </div>
         </div>`;
       return;
@@ -865,7 +963,7 @@ function mountManager(adminCode) {
         </div>
       </div>
       <button class="collapseBtn" onclick="window.__togglePlayers()">${s.showPlayers ? "▲ Players chhupao" : "▼ Players dikhao"}</button>
-      ${s.showPlayers ? playerListHTML(m, teamKey, inn) : ""}
+      ${s.showPlayers ? playerListHTML(m, teamKey, inn, { editable: true }) : ""}
       ${s.outOpen ? outModalHTML(m, teamKey, inn, s) : ""}
     `;
   }
@@ -898,7 +996,9 @@ function mountManager(adminCode) {
           <select id="newBatSelect" class="select" onchange="window.__setNewBat(this.value)">
             <option value="">-- chuno --</option>
             ${bench.map((p) => `<option value="${p.id}" ${s.newBatId === p.id ? "selected" : ""}>${esc(p.name)}</option>`).join("")}
+            <option value="__new__" ${s.newBatId === "__new__" ? "selected" : ""}>+ Naya Player Add Karo</option>
           </select>
+          ${s.newBatId === "__new__" ? `<input id="newBatNameInput" class="input" placeholder="Naye player ka naam" style="margin-top:8px;" autofocus />` : ""}
           <div class="rowbtns" style="margin-top:14px;">
             <button class="btn ghost" onclick="window.__closeOut()">Cancel</button>
             <button class="btn danger" onclick="window.__submitOut()">Confirm Out</button>
@@ -995,6 +1095,7 @@ function mountViewer(code) {
     if (inn?.lastEvent && inn.lastEvent.id !== lastEventId) {
       lastEventId = inn.lastEvent.id;
       flash = inn.lastEvent;
+      playEventSound(inn.lastEvent.kind);
       render();
       clearTimeout(flashTimer);
       flashTimer = setTimeout(() => { flash = null; render(); }, 1500);
