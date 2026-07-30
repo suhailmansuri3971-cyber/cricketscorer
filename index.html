@@ -1,13 +1,1012 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
-    <title>Cricket Scorer</title>
-    <style>@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;700;800&family=Inter:wght@400;600;700&display=swap');</style>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0A1310" />
+<title>Cricket Scorer — Live Match Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;500;600;700&family=Orbitron:wght@500;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-0:#080F0C; --bg-1:#0D1A14;
+  --surface: rgba(20,34,26,0.72); --surface-solid:#142218;
+  --surface-2: rgba(24,42,31,0.9);
+  --border: rgba(244,241,230,0.09); --border-strong: rgba(244,241,230,0.18);
+  --gold:#F4B942; --gold-dim:#C9902A; --gold-soft: rgba(244,185,66,0.14);
+  --grass:#3FCB6B; --sky:#4C9EF0; --crimson:#FF5C4D;
+  --cream:#F5F1E6; --muted:#93AA9C; --muted-2:#5E7268;
+  --radius: 18px;
+  --shadow-lift: 0 14px 40px rgba(0,0,0,0.45);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;background:var(--bg-0);}
+body{
+  min-height:100vh;
+  background:
+    radial-gradient(600px 400px at 12% -8%, rgba(244,185,66,0.10), transparent 60%),
+    radial-gradient(600px 500px at 110% 0%, rgba(76,158,240,0.10), transparent 55%),
+    radial-gradient(900px 700px at 50% 120%, rgba(63,203,107,0.08), transparent 60%),
+    var(--bg-0);
+}
+.shell{
+  max-width:480px; margin:0 auto; min-height:100vh; position:relative;
+  color:var(--cream); font-family:'Inter',-apple-system,sans-serif;
+  padding:14px 14px 40px; overflow-x:hidden;
+}
+.shell::before{
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background-image: radial-gradient(rgba(244,241,230,0.035) 1px, transparent 1px);
+  background-size: 14px 14px;
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,0.5), transparent 55%);
+}
+.shell > *{ position:relative; z-index:1; }
+
+h1,h2,h3{ font-family:'Teko',sans-serif; margin:2px 0 8px; letter-spacing:0.3px; font-weight:600; }
+h1{ font-size:38px; } h2{ font-size:28px; } h3{ font-size:22px; text-transform:uppercase; letter-spacing:0.6px; color:var(--cream); }
+
+.eyebrow{ font-family:'Teko',sans-serif; font-size:14px; letter-spacing:4px; color:var(--gold); font-weight:600; margin-bottom:2px; text-transform:uppercase; }
+.hint{ color:var(--muted); font-size:13px; margin:2px 0 10px; line-height:1.5; }
+
+.card{
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+  padding:18px; margin-bottom:14px; backdrop-filter: blur(14px);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.03) inset, var(--shadow-lift);
+}
+.center{ text-align:center; }
+.linklike{ color:var(--gold); font-weight:700; text-decoration:none; font-size:14px; }
+
+.lbl{ display:block; font-size:11px; letter-spacing:1.2px; text-transform:uppercase; color:var(--muted); margin:12px 0 6px; font-weight:700; }
+.input,.select{
+  width:100%; padding:13px 14px; border-radius:12px; border:1px solid var(--border-strong);
+  background:rgba(8,15,12,0.6); color:var(--cream); font-size:15px; margin-bottom:6px;
+  font-family:'Inter',sans-serif; appearance:none;
+}
+.input:focus,.select:focus{ outline:none; border-color:var(--gold); box-shadow:0 0 0 3px var(--gold-soft); }
+.select{ background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='9'><path d='M1 1l6 6 6-6' stroke='%2393AA9C' stroke-width='2' fill='none' fill-rule='evenodd'/></svg>"); background-repeat:no-repeat; background-position:right 14px center; padding-right:34px; }
+.codeInput{ text-align:center; font-family:'Orbitron',sans-serif; font-size:24px; letter-spacing:6px; font-weight:700; text-transform:uppercase; }
+
+.rowbtns{ display:flex; gap:8px; flex-wrap:wrap; }
+.chip{
+  flex:1; min-width:70px; padding:11px 8px; border-radius:11px; border:1px solid var(--border-strong);
+  background:rgba(8,15,12,0.5); color:var(--cream); font-weight:700; font-size:14px; transition:.15s;
+}
+.chip.small{ flex:none; min-width:44px; }
+.chipActive{ background:var(--gold); color:#141B12; border-color:var(--gold); box-shadow:0 4px 14px rgba(244,185,66,0.3); }
+
+.btn{ padding:13px 18px; border-radius:13px; border:none; font-weight:800; font-size:15px; cursor:pointer; font-family:'Inter',sans-serif; transition:transform .08s, opacity .15s; letter-spacing:0.2px; }
+.btn:active{ transform:scale(0.97); }
+.btn.primary{ background:linear-gradient(180deg,#FFCB5C,var(--gold)); color:#171207; box-shadow:0 8px 22px rgba(244,185,66,0.28); }
+.btn.danger{ background:linear-gradient(180deg,#FF7A6B,var(--crimson)); color:#22100c; box-shadow:0 8px 22px rgba(255,92,77,0.25); }
+.btn.ghost{ background:var(--surface-2); color:var(--cream); border:1px solid var(--border-strong); }
+.btn.small{ padding:9px 13px; font-size:12.5px; }
+.btn.big{ width:100%; padding:17px; font-size:17px; margin-top:8px; }
+.btn:disabled{ opacity:0.35; cursor:not-allowed; }
+
+.topbar{ display:flex; justify-content:space-between; align-items:center; padding:8px 2px 12px; position:sticky; top:0; z-index:20; background:linear-gradient(var(--bg-0) 70%, transparent); backdrop-filter:blur(6px); }
+.matchName{ font-family:'Teko',sans-serif; font-size:19px; font-weight:600; letter-spacing:0.3px; }
+.code{ font-size:11px; color:var(--muted); letter-spacing:0.5px; }
+.liveDot{ display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--crimson); margin-right:6px; box-shadow:0 0 8px var(--crimson); animation:pulse 1.4s ease-in-out infinite; }
+@keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:0.35;} }
+
+.stickyTop{ position:sticky; top:46px; z-index:15; }
+
+.scorecard{
+  position:relative; border-radius:20px; padding:20px 18px; text-align:center; margin-bottom:12px;
+  background: linear-gradient(155deg, #101C15 0%, #0B140F 100%);
+  border:1px solid var(--border-strong);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 0 1px rgba(244,185,66,0.05) inset;
+  overflow:hidden;
+}
+.scorecard::before{
+  content:""; position:absolute; inset:0; opacity:0.5; pointer-events:none;
+  background-image: radial-gradient(rgba(244,185,66,0.06) 1px, transparent 1.2px);
+  background-size:8px 8px;
+}
+.teamRow{ display:flex; justify-content:space-between; align-items:center; font-size:12.5px; color:var(--muted); margin-bottom:6px; position:relative; text-transform:uppercase; letter-spacing:0.8px; }
+.teamRow .teamName{ font-family:'Teko',sans-serif; font-size:19px; color:var(--cream); text-transform:none; letter-spacing:0.3px; }
+.overs{ font-variant-numeric:tabular-nums; }
+.ledscore{
+  font-family:'Orbitron',sans-serif; font-size:54px; font-weight:800; color:var(--gold);
+  text-shadow:0 0 22px rgba(244,185,66,0.45), 0 0 4px rgba(244,185,66,0.6);
+  font-variant-numeric:tabular-nums; line-height:1; position:relative; margin:4px 0;
+}
+.bigscore{ font-family:'Orbitron',sans-serif; font-size:42px; color:var(--gold); font-weight:800; margin:8px 0; text-shadow:0 0 18px rgba(244,185,66,0.4); }
+.bigscore.small,.ledscore.small{ font-size:28px; }
+.slash{ color:var(--muted-2); font-size:0.6em; margin:0 6px; }
+.target{ color:var(--grass); font-weight:700; margin-top:8px; font-size:13px; }
+.batsmen{ display:flex; justify-content:space-between; margin-top:10px; font-size:14px; padding-top:10px; border-top:1px dashed var(--border-strong); }
+.batsmen span:first-child{ color:var(--cream); font-weight:700; }
+.batsmen span:last-child{ color:var(--muted); }
+
+.keypad{ background:var(--surface-2); border:1px solid var(--border); border-radius:20px; padding:14px; margin-bottom:10px; }
+.grid6{ display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-bottom:10px; }
+.ballbtn{ padding:22px 0; font-size:25px; font-family:'Orbitron',sans-serif; font-weight:700; border-radius:15px; border:1px solid var(--border-strong); background:rgba(8,15,12,0.6); color:var(--cream); transition:transform .08s; }
+.ballbtn:active{ transform:scale(0.93); }
+.ballbtn.four{ background:linear-gradient(160deg,#6AB3FF,var(--sky)); color:#0A1830; border-color:transparent; box-shadow:0 6px 16px rgba(76,158,240,0.3); }
+.ballbtn.six{ background:linear-gradient(160deg,#68E796,var(--grass)); color:#062012; border-color:transparent; box-shadow:0 6px 16px rgba(63,203,107,0.3); }
+.extrasRow{ margin-bottom:6px; }
+.grid4{ display:grid; grid-template-columns:repeat(4,1fr); gap:7px; }
+.submenu{ background:rgba(8,15,12,0.55); border:1px solid var(--border); border-radius:12px; padding:11px; margin-top:8px; }
+.bigActionsRow{ margin-top:14px; }
+.bigActionsRow .btn{ flex:1; padding:17px 0; font-size:16px; }
+.freehit{ background:linear-gradient(180deg,#FFCB5C,var(--gold)); color:#171207; font-weight:800; text-align:center; padding:10px; border-radius:12px; margin-bottom:10px; letter-spacing:0.3px; animation:pulse 1.6s ease-in-out infinite; }
+
+.collapseBtn{ width:100%; background:none; border:none; color:var(--muted); font-weight:700; padding:12px 0; font-size:13px; letter-spacing:0.5px; cursor:pointer; }
+.players{ display:flex; flex-direction:column; gap:6px; }
+.playerRow{ font-size:14px; padding:9px 12px; border-radius:10px; background:rgba(8,15,12,0.5); color:var(--muted); border:1px solid transparent; }
+.playerRow.batting{ color:var(--cream); font-weight:700; border-color:var(--border-strong); background:rgba(244,185,66,0.06); }
+.playerRow.out{ color:var(--crimson); text-decoration:line-through; opacity:0.7; }
+.playerEditRow{ display:flex; justify-content:space-between; align-items:center; padding:6px 2px; font-size:14.5px; border-bottom:1px solid var(--border); }
+.xbtn{ background:none; border:none; color:var(--crimson); font-weight:700; font-size:16px; cursor:pointer; padding:4px 8px; }
+
+.feed{ max-height:150px; overflow-y:auto; margin-bottom:4px; }
+.feedRow{ padding:8px 2px; border-bottom:1px solid var(--border); font-size:14px; color:#C9D6CC; }
+.feedRow:first-child{ color:var(--cream); font-weight:700; }
+
+.summaryGrid{ display:flex; justify-content:space-around; margin:18px 0; }
+.warn{ color:var(--crimson); font-size:12px; margin-top:4px; }
+
+.modalBg{ position:fixed; inset:0; background:rgba(3,7,5,0.7); backdrop-filter:blur(3px); display:flex; align-items:flex-end; z-index:80; }
+.modal{ background:var(--surface-solid); width:100%; max-width:480px; margin:0 auto; border-radius:22px 22px 0 0; padding:20px; max-height:86vh; overflow-y:auto; border:1px solid var(--border-strong); border-bottom:none; animation:slideUp .22s ease-out; }
+@keyframes slideUp{ from{ transform:translateY(30px); opacity:0.4; } to{ transform:translateY(0); opacity:1; } }
+
+.overlayLayer{ position:fixed; inset:0; pointer-events:none; z-index:70; display:flex; align-items:center; justify-content:center; perspective:700px; }
+.toastBanner{ position:fixed; top:20px; left:50%; transform:translateX(-50%); background:linear-gradient(180deg,#FFCB5C,var(--gold)); color:#171207; font-weight:800; padding:11px 20px; border-radius:30px; z-index:70; animation:slideDown 1.5s ease forwards; box-shadow:0 10px 26px rgba(244,185,66,0.35); font-size:14px; }
+@keyframes slideDown{ 0%{opacity:0; transform:translate(-50%,-30px);} 15%{opacity:1; transform:translate(-50%,0);} 80%{opacity:1;} 100%{opacity:0;} }
+
+.eventText3d{ font-family:'Teko',sans-serif; font-weight:700; font-size:64px; letter-spacing:1px; animation:pop3d 1.4s cubic-bezier(.17,.89,.32,1.28) forwards; transform-style:preserve-3d; }
+.text-six{ color:var(--grass); text-shadow:0 0 30px rgba(63,203,107,0.85), 0 4px 18px rgba(0,0,0,0.6); }
+.text-four{ color:var(--sky); text-shadow:0 0 30px rgba(76,158,240,0.85), 0 4px 18px rgba(0,0,0,0.6); }
+.text-out{ color:var(--crimson); text-shadow:0 0 30px rgba(255,92,77,0.85), 0 4px 18px rgba(0,0,0,0.6); }
+@keyframes pop3d{ 0%{transform:perspective(600px) rotateX(90deg) scale(0.4); opacity:0;} 30%{transform:perspective(600px) rotateX(-15deg) scale(1.2); opacity:1;} 50%{transform:perspective(600px) rotateX(0deg) scale(1);} 85%{opacity:1;} 100%{opacity:0; transform:perspective(600px) scale(1.05);} }
+
+.flyball{ position:absolute; font-size:46px; left:20%; bottom:35%; animation:flyUp 1.1s ease-out forwards; filter:drop-shadow(0 6px 14px rgba(0,0,0,.5)); }
+@keyframes flyUp{ 0%{transform:translate3d(0,0,0) rotate(0deg) scale(0.6); opacity:0;} 20%{opacity:1;} 100%{transform:translate3d(180px,-240px,0) rotate(900deg) scale(1.3); opacity:0;} }
+.zoomball{ position:absolute; font-size:42px; left:10%; bottom:40%; animation:zoomAcross 0.9s ease-out forwards; }
+@keyframes zoomAcross{ 0%{transform:translateX(-30px) rotate(0deg) scale(0.7); opacity:0;} 15%{opacity:1;} 100%{transform:translateX(240px) rotate(540deg) scale(1.1); opacity:0;} }
+.bail{ position:absolute; font-size:42px; top:40%; animation:bailFall 0.9s ease-in forwards; }
+@keyframes bailFall{ 0%{transform:translateY(-20px) rotate(0deg); opacity:0;} 20%{opacity:1;} 100%{transform:translateY(70px) rotate(220deg); opacity:0;} }
+.shakeScreen{ animation:shake 0.5s; }
+@keyframes shake{ 10%,90%{transform:translateX(-2px);} 20%,80%{transform:translateX(4px);} 30%,50%,70%{transform:translateX(-8px);} 40%,60%{transform:translateX(8px);} }
+.confettiWrap{ position:fixed; inset:0; pointer-events:none; overflow:hidden; z-index:65; }
+.confetti{ position:absolute; top:0; width:8px; height:14px; border-radius:2px; animation-name:confettiFall; animation-timing-function:ease-in; }
+@keyframes confettiFall{ 0%{transform:translateY(-20px) rotate(0deg); opacity:1;} 100%{transform:translateY(480px) rotate(720deg); opacity:0;} }
+
+.heroWrap{ min-height:92vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:20px 6px; }
+.heroTop{ margin-bottom:30px; }
+.heroBall{ font-size:56px; margin-bottom:10px; animation:floatBall 2.6s ease-in-out infinite; filter:drop-shadow(0 10px 20px rgba(244,185,66,0.25)); }
+@keyframes floatBall{ 0%,100%{transform:translateY(0) rotate(0deg);} 50%{transform:translateY(-12px) rotate(12deg);} }
+.heroTitle{ font-size:42px; margin:2px 0; color:var(--cream); }
+.heroSub{ color:var(--muted); font-size:14px; margin:0; max-width:280px; }
+.heroCard{ background:var(--surface); border:1px solid var(--border-strong); border-radius:22px; padding:24px; width:100%; max-width:340px; margin-top:26px; backdrop-filter:blur(14px); box-shadow:var(--shadow-lift); }
+.heroInput{ font-size:28px; padding:17px; margin:8px 0 12px; }
+.adminLink{ margin-top:30px; color:var(--muted); font-size:12.5px; text-decoration:none; padding:9px 16px; border:1px solid var(--border-strong); border-radius:22px; letter-spacing:0.3px; }
+.adminLink:active{ background:var(--surface-2); }
+
+.errorBanner{ background:linear-gradient(180deg,#FF7A6B,var(--crimson)); color:#22100c; font-size:13px; font-weight:700; padding:11px 14px; border-radius:12px; margin-bottom:10px; }
+
+@media print{
+  .noprint,.keypad,.collapseBtn{ display:none; }
+  .shell{ background:#fff; color:#000; }
+  .scorecard,.card{ border-color:#000; }
+}
+</style>
+</head>
+<body>
+<div id="app" class="shell"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, onValue, set, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+/* ============ Firebase config (project: bamboobasket1-93c9b) ============ */
+const firebaseConfig = {
+  apiKey: "AIzaSyCRTQyAv_J1_jCS95r5EattXPYmOVsYy-c",
+  authDomain: "bamboobasket1-93c9b.firebaseapp.com",
+  databaseURL: "https://bamboobasket1-93c9b-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "bamboobasket1-93c9b",
+  storageBucket: "bamboobasket1-93c9b.firebasestorage.app",
+  messagingSenderId: "676308957310",
+  appId: "1:676308957310:web:d60a5b8e21dddbf576002f",
+  measurementId: "G-P224KTW77P"
+};
+const fbApp = initializeApp(firebaseConfig);
+const db = getDatabase(fbApp);
+const matchPath = (code) => `matches/${code}`;
+const adminPath = (adminCode) => `adminCodes/${adminCode}`;
+
+/* ============ gameLogic.js — ported 1:1, rules unchanged ============ */
+const uid = () => Math.random().toString(36).slice(2, 8).toUpperCase();
+const clone = (o) => JSON.parse(JSON.stringify(o));
+const fmtOvers = (balls) => `${Math.floor(balls / 6)}.${balls % 6}`;
+
+function newInnings(battingTeam, bowlingTeam, oversLimit) {
+  return {
+    battingTeam, bowlingTeam, runs: 0, wickets: 0, balls: 0,
+    extras: { wide: 0, noball: 0, bye: 0, legbye: 0 },
+    strikerId: null, nonStrikerId: null, freeHit: false, events: [], lastEvent: null,
+  };
+}
+function normalizeMatch(m) {
+  // Firebase Realtime Database silently drops empty arrays (treats [] like null,
+  // removing the key). So after loading a match back, inn.events can be
+  // `undefined` instead of `[]`, which crashes the very first inn.events.push().
+  // Patch it back to an array on every load, for both innings.
+  if (!m) return m;
+  if (m.innings1 && !m.innings1.events) m.innings1.events = [];
+  if (m.innings2 && !m.innings2.events) m.innings2.events = [];
+  return m;
+}
+function totalPlayers(match, teamKey) { return match.config[teamKey].players.length; }
+function swapStrike(inn) { const t = inn.strikerId; inn.strikerId = inn.nonStrikerId; inn.nonStrikerId = t; }
+
+function applyDelivery(match, inn, teamKey, { kind, runs }) {
+  let legalBall = true;
+  let strikeSwapRuns = 0;
+  let label = "";
+
+  if (kind === "normal") {
+    inn.runs += runs;
+    strikeSwapRuns = runs;
+    label = runs === 6 ? "SIX!" : runs === 4 ? "FOUR!" : runs === 0 ? "Dot ball" : `${runs} run${runs === 1 ? "" : "s"}`;
+  } else if (kind === "bye") {
+    inn.runs += runs;
+    inn.extras.bye += runs;
+    strikeSwapRuns = runs;
+    label = `${runs} bye${runs === 1 ? "" : "s"}`;
+  } else if (kind === "legbye") {
+    inn.runs += runs;
+    inn.extras.legbye += runs;
+    strikeSwapRuns = runs;
+    label = `${runs} leg bye${runs === 1 ? "" : "s"}`;
+  } else if (kind === "wide") {
+    legalBall = false;
+    inn.runs += 1 + runs;
+    inn.extras.wide += 1 + runs;
+    strikeSwapRuns = runs;
+    label = runs > 0 ? `Wide +${runs}` : "Wide";
+  } else if (kind === "noball") {
+    legalBall = false;
+    inn.runs += 1 + runs;
+    inn.extras.noball += 1;
+    strikeSwapRuns = runs;
+    label = runs > 0 ? `No ball +${runs}` : "No ball";
+  }
+
+  if (legalBall) inn.balls += 1;
+
+  if (kind === "noball") inn.freeHit = true;
+  else if (kind !== "wide") inn.freeHit = false;
+
+  if (strikeSwapRuns % 2 === 1) swapStrike(inn);
+  if (legalBall && inn.balls > 0 && inn.balls % 6 === 0) swapStrike(inn);
+
+  inn.lastEvent = { id: uid(), label, kind: runs === 6 ? "six" : runs === 4 ? "four" : kind === "normal" ? "normal" : kind };
+  if (!inn.events) inn.events = [];
+  inn.events.push(inn.lastEvent);
+  return inn;
+}
+
+function applyWicket(match, inn, teamKey, { runsBeforeOut, dismissedSlot, howOut, newBatsmanId }) {
+  inn.runs += runsBeforeOut;
+  inn.balls += 1;
+  inn.wickets += 1;
+  inn.freeHit = false;
+
+  const outPlayerId = dismissedSlot === "striker" ? inn.strikerId : inn.nonStrikerId;
+  const team = match.config[teamKey].players;
+  const p = team.find((pl) => pl.id === outPlayerId);
+  if (p) { p.out = true; p.dismissal = howOut; }
+
+  if (dismissedSlot === "striker") inn.strikerId = newBatsmanId;
+  else inn.nonStrikerId = newBatsmanId;
+
+  if (runsBeforeOut % 2 === 1) swapStrike(inn);
+  if (inn.balls > 0 && inn.balls % 6 === 0) swapStrike(inn);
+
+  inn.lastEvent = { id: uid(), label: `OUT (${howOut})`, kind: "out" };
+  if (!inn.events) inn.events = [];
+  inn.events.push(inn.lastEvent);
+  return inn;
+}
+
+function inningsShouldEnd(match, inn, teamKey) {
+  if (inn.wickets >= totalPlayers(match, teamKey) - 1) return "all_out";
+  if (inn.balls >= match.config.overs * 6) return "overs_done";
+  if (match.currentInnings === 2 && inn.runs >= match.target) return "target_reached";
+  return null;
+}
+
+function computeResult(m) {
+  const chased = m.innings2.runs;
+  const target = m.target;
+  const battingTeam2Key = m.bowlingKey;
+  const wicketsLeft = totalPlayers(m, battingTeam2Key) - 1 - m.innings2.wickets;
+  if (chased >= target) {
+    return `${m.config[battingTeam2Key].name} jeet gayi, ${wicketsLeft} wicket${wicketsLeft === 1 ? "" : "s"} se.`;
+  } else if (chased === target - 1) {
+    return "Match TIE ho gaya!";
+  } else {
+    const margin = target - 1 - chased;
+    return `${m.config[m.battingKey].name} jeet gayi, ${margin} run${margin === 1 ? "" : "s"} se.`;
+  }
+}
+
+/* ============ tiny helpers ============ */
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const $app = () => document.getElementById("app");
+
+function renderScoreboardHTML(match, inn, teamKey) {
+  const battingName = match.config[teamKey].name;
+  const strikerName = match.config[teamKey].players.find((p) => p.id === inn.strikerId)?.name || "-";
+  const nonStrikerName = match.config[teamKey].players.find((p) => p.id === inn.nonStrikerId)?.name || "-";
+  return `
+    <div class="scorecard">
+      <div class="teamRow">
+        <span class="teamName">${esc(battingName)}</span>
+        <span class="overs">OV ${fmtOvers(inn.balls)} / ${match.config.overs}</span>
+      </div>
+      <div class="ledscore">${inn.runs}<span class="slash">/</span>${inn.wickets}</div>
+      ${match.currentInnings === 2 ? `<div class="target">Target: ${match.target} · Chahiye: ${Math.max(match.target - inn.runs, 0)} runs</div>` : ""}
+      <div class="batsmen">
+        <span>🏏 ${esc(strikerName)}*</span>
+        <span>${esc(nonStrikerName)}</span>
+      </div>
+    </div>`;
+}
+
+function renderOverlayHTML(event) {
+  if (!event) return "";
+  if (event.kind === "six") {
+    const pieces = confettiPieces(22);
+    return `<div class="overlayLayer">${pieces}<div class="flyball">🏏</div><div class="eventText3d text-six">SIX!</div></div>`;
+  }
+  if (event.kind === "four") {
+    const pieces = confettiPieces(10);
+    return `<div class="overlayLayer">${pieces}<div class="zoomball">🏏</div><div class="eventText3d text-four">FOUR!</div></div>`;
+  }
+  if (event.kind === "out") {
+    return `<div class="overlayLayer shakeScreen"><div class="bail">🎯</div><div class="eventText3d text-out">OUT!</div></div>`;
+  }
+  if (event.kind === "wide" || event.kind === "noball") {
+    return `<div class="toastBanner">${event.kind === "wide" ? "Wide ball" : "No Ball — Free Hit next!"}</div>`;
+  }
+  return "";
+}
+function confettiPieces(count) {
+  const colors = ["#F4B942", "#3FCB6B", "#4C9EF0", "#FF5C4D", "#F5F1E6"];
+  let out = `<div class="confettiWrap">`;
+  for (let i = 0; i < count; i++) {
+    const left = Math.random() * 100;
+    const delay = (Math.random() * 0.25).toFixed(2);
+    const duration = (0.9 + Math.random() * 0.7).toFixed(2);
+    const rot = Math.floor(Math.random() * 360);
+    const color = colors[i % colors.length];
+    out += `<span class="confetti" style="left:${left}%;animation-delay:${delay}s;animation-duration:${duration}s;background:${color};transform:rotate(${rot}deg);"></span>`;
+  }
+  out += `</div>`;
+  return out;
+}
+function playerListHTML(match, teamKey, inn) {
+  const players = match.config[teamKey].players;
+  return `
+    <div class="card">
+      <div class="eyebrow">Players — ${esc(match.config[teamKey].name)}</div>
+      <div class="players">
+        ${players.map((p) => `
+          <div class="playerRow ${p.out ? "out" : ""} ${p.id === inn.strikerId || p.id === inn.nonStrikerId ? "batting" : ""}">
+            ${esc(p.name)}${p.id === inn.strikerId ? " 🏏" : ""}${p.out ? ` — out (${esc(p.dismissal)})` : ""}
+          </div>`).join("")}
+      </div>
+    </div>`;
+}
+function topBarHTML(match, opts) {
+  return `
+    <div class="topbar">
+      <div>
+        <div class="matchName"><span class="liveDot"></span>${esc(match.config.matchName)}</div>
+        <div class="code">CODE: <b>${esc(match.code)}</b></div>
+      </div>
+      <div class="rowbtns" style="gap:6px;">
+        ${opts?.showAdminLink ? `<button class="btn ghost small" onclick="window.__shareAdminLink()" title="Apna resume-link save karo">🔑 Admin</button>` : ""}
+        <button class="btn ghost small" onclick="window.__shareMatch()">Share</button>
+      </div>
+    </div>`;
+}
+
+/* ============ router ============ */
+let currentUnsubs = [];
+function cleanupRoute() { currentUnsubs.forEach((u) => { try { u(); } catch (e) {} }); currentUnsubs = []; }
+function parseHash() { const hash = location.hash.replace(/^#\/?/, ""); return hash.split("/").filter(Boolean); }
+
+function mount() {
+  cleanupRoute();
+  const route = parseHash();
+  if (route[0] === "manage" && route[1]) mountManager(route[1]);
+  else if (route[0] === "admin" && route[1] === "new") mountSetup();
+  else if (route[0] === "admin") mountAdminHome();
+  else if (route[0] === "watch" && route[1]) mountViewer(route[1]);
+  else if (route[0] === "watch") mountWatchEntry();
+  else mountWatchEntry();
+}
+window.addEventListener("hashchange", mount);
+
+/* ============ Watch code entry (default landing) ============ */
+function mountWatchEntry() {
+  $app().innerHTML = `
+    <div class="heroWrap">
+      <div class="heroTop">
+        <div class="heroBall">🏏</div>
+        <div class="eyebrow">Live Match Center</div>
+        <h1 class="heroTitle">Cricket Scorer</h1>
+        <p class="heroSub">Live score, live animation — code daalo aur dekho</p>
+      </div>
+      <div class="heroCard">
+        <label class="lbl">Match Code</label>
+        <input id="watchCode" class="input codeInput heroInput" maxlength="10" placeholder="A1B2C3"
+          oninput="this.value=this.value.toUpperCase(); document.getElementById('watchBtn').disabled=!this.value.trim();"
+          onkeydown="if(event.key==='Enter'){window.__goWatch();}" />
+        <button id="watchBtn" class="btn primary big" disabled onclick="window.__goWatch()">▶ Live Dekho</button>
+      </div>
+      <a class="adminLink" href="#/admin">⚙ Match Manager / Admin</a>
+    </div>`;
+  window.__goWatch = () => {
+    const v = document.getElementById("watchCode").value.trim().toUpperCase();
+    if (v) location.hash = `#/watch/${v}`;
+  };
+}
+
+/* ============ Admin home ============ */
+function mountAdminHome() {
+  $app().innerHTML = `
+    <div class="header" style="padding:10px 2px 16px;">
+      <div class="eyebrow">Match Manager</div>
+      <h1>Admin</h1>
+    </div>
+    <div class="card">
+      <h3>Naya match shuru karo</h3>
+      <p class="hint">Team, players, overs set karke live jao.</p>
+      <a class="btn primary big" href="#/admin/new">+ Naya Match</a>
+    </div>
+    <div class="card">
+      <h3>Pehle se chal raha match resume karo</h3>
+      <p class="hint">Agar tab band ho gaya tha ya app se hat gaye the, apna Admin Code yaha daalo.</p>
+      <input id="resumeCode" class="input codeInput" placeholder="Admin code"
+        oninput="document.getElementById('resumeBtn').disabled=!this.value.trim();" />
+      <button id="resumeBtn" class="btn primary big" disabled onclick="window.__resume()">Resume Karo</button>
+    </div>
+    <div class="center" style="margin-top:10px;">
+      <a class="linklike" href="#/">← Viewer screen par wapas jao</a>
+    </div>`;
+  window.__resume = () => {
+    const v = document.getElementById("resumeCode").value.trim();
+    if (v) location.hash = `#/manage/${v}`;
+  };
+}
+
+/* ============ Setup view (new match) ============ */
+function mountSetup() {
+  const state = {
+    teamAName: "", teamBName: "",
+    teamA: [], teamB: [],
+    overs: 6, tossWinner: "A", tossDecision: "bat",
+    newPlayerA: "", newPlayerB: "",
+    busy: false,
+  };
+
+  function renderRoster(teamKey) {
+    const list = teamKey === "A" ? state.teamA : state.teamB;
+    const wrapId = teamKey === "A" ? "rosterA" : "rosterB";
+    document.getElementById(wrapId).innerHTML = list.map((p, i) => `
+      <div class="playerEditRow">
+        <span>${i + 1}. ${esc(p.name)}</span>
+        <button class="xbtn" onclick="window.__removePlayer('${teamKey}','${p.id}')">✕</button>
+      </div>`).join("");
+  }
+
+  window.__addPlayer = (teamKey) => {
+    const inputId = teamKey === "A" ? "newPlayerA" : "newPlayerB";
+    const input = document.getElementById(inputId);
+    const name = input.value.trim();
+    const list = teamKey === "A" ? state.teamA : state.teamB;
+    list.push({ id: uid(), name: name || `Player ${list.length + 1}`, out: false, dismissal: null });
+    input.value = "";
+    renderRoster(teamKey);
+  };
+  window.__removePlayer = (teamKey, id) => {
+    if (teamKey === "A") state.teamA = state.teamA.filter((p) => p.id !== id);
+    else state.teamB = state.teamB.filter((p) => p.id !== id);
+    renderRoster(teamKey);
+  };
+  window.__setToss = (w) => {
+    state.tossWinner = w;
+    document.getElementById("tossA").classList.toggle("chipActive", w === "A");
+    document.getElementById("tossB").classList.toggle("chipActive", w === "B");
+  };
+  window.__setDecision = (d) => {
+    state.tossDecision = d;
+    document.getElementById("decBat").classList.toggle("chipActive", d === "bat");
+    document.getElementById("decBowl").classList.toggle("chipActive", d === "bowl");
+  };
+
+  window.__goLive = async () => {
+    if (state.teamA.length < 2 || state.teamB.length < 2) {
+      alert("Kam se kam 2-2 players har team me chahiye.");
+      return;
+    }
+    const battingKey = (state.tossWinner === "A") === (state.tossDecision === "bat") ? "teamA" : "teamB";
+    const bowlingKey = battingKey === "teamA" ? "teamB" : "teamA";
+    const code = uid();
+    const adminCode = uid() + uid();
+    const overs = Number(state.overs) || 6;
+    const m = {
+      code,
+      config: {
+        matchName: `${state.teamAName || "Team A"} vs ${state.teamBName || "Team B"}`,
+        teamA: { name: state.teamAName || "Team A", players: clone(state.teamA) },
+        teamB: { name: state.teamBName || "Team B", players: clone(state.teamB) },
+        overs,
+        toss: { winner: state.tossWinner, decision: state.tossDecision },
+      },
+      status: "openers1",
+      currentInnings: 1,
+      battingKey, bowlingKey,
+      innings1: newInnings(battingKey, bowlingKey, overs),
+      innings2: null,
+      target: null,
+      result: null,
+    };
+    state.busy = true;
+    const btn = document.getElementById("goLiveBtn");
+    btn.disabled = true; btn.textContent = "Starting...";
+    try {
+      await set(ref(db, matchPath(code)), m);
+      await set(ref(db, adminPath(adminCode)), code);
+      alert(
+        "Match live ho gaya!\n\nYE TUMHARA ADMIN CODE HAI (isse tum kabhi bhi wapas is match par aa sakte ho, chahe tab band ho jaye):\n\n" +
+        adminCode +
+        "\n\nIse kahi safe jagah likh lo — screenshot le lo abhi!"
+      );
+      location.hash = `#/manage/${adminCode}`;
+    } catch (e) {
+      alert("Firebase se connect nahi ho paaya. Config check karo. (" + e.message + ")");
+      btn.disabled = false; btn.textContent = "Go Live 🔴";
+    }
+    state.busy = false;
+  };
+
+  $app().innerHTML = `
+    <div class="header" style="padding:10px 2px 16px;">
+      <div class="eyebrow">Gully Cricket</div>
+      <h1>Cricket Scorer</h1>
+    </div>
+    <div class="card">
+      <label class="lbl">Team A naam</label>
+      <input class="input" placeholder="Team A" oninput="window.__teamAName=this.value;" onchange="window.__teamAName=this.value;" />
+      <label class="lbl">Team A players</label>
+      <div id="rosterA"></div>
+      <div class="rowbtns" style="margin-top:6px;">
+        <input id="newPlayerA" class="input" placeholder="Player naam" style="margin-bottom:0;" onkeydown="if(event.key==='Enter')window.__addPlayer('A')" />
+        <button class="btn ghost" onclick="window.__addPlayer('A')">+ Add</button>
+      </div>
+    </div>
+    <div class="card">
+      <label class="lbl">Team B naam</label>
+      <input class="input" placeholder="Team B" oninput="window.__teamBName=this.value;" onchange="window.__teamBName=this.value;" />
+      <label class="lbl">Team B players</label>
+      <div id="rosterB"></div>
+      <div class="rowbtns" style="margin-top:6px;">
+        <input id="newPlayerB" class="input" placeholder="Player naam" style="margin-bottom:0;" onkeydown="if(event.key==='Enter')window.__addPlayer('B')" />
+        <button class="btn ghost" onclick="window.__addPlayer('B')">+ Add</button>
+      </div>
+    </div>
+    <div class="card">
+      <label class="lbl">Overs</label>
+      <input class="input" type="number" min="1" value="6" oninput="window.__overs=this.value;" />
+      <label class="lbl">Toss jeeta</label>
+      <div class="rowbtns">
+        <button id="tossA" class="chip chipActive" onclick="window.__setToss('A')">Team A</button>
+        <button id="tossB" class="chip" onclick="window.__setToss('B')">Team B</button>
+      </div>
+      <label class="lbl">Decision</label>
+      <div class="rowbtns">
+        <button id="decBat" class="chip chipActive" onclick="window.__setDecision('bat')">Batting</button>
+        <button id="decBowl" class="chip" onclick="window.__setDecision('bowl')">Bowling</button>
+      </div>
+    </div>
+    <button id="goLiveBtn" class="btn primary big" onclick="window.__goLive()">Go Live 🔴</button>
+    <div class="center" style="margin-top:14px;">
+      <a class="linklike" href="#/watch">Match dekhna hai? Yaha code dalo →</a>
+    </div>`;
+
+  // wire simple field trackers without full re-render (avoids cursor loss)
+  Object.defineProperty(window, "__teamAName", { configurable: true, set(v) { state.teamAName = v; }, get() { return state.teamAName; } });
+  Object.defineProperty(window, "__teamBName", { configurable: true, set(v) { state.teamBName = v; }, get() { return state.teamBName; } });
+  Object.defineProperty(window, "__overs", { configurable: true, set(v) { state.overs = v; }, get() { return state.overs; } });
+  renderRoster("A"); renderRoster("B");
+}
+
+/* ============ Manager view (live scoring) ============ */
+function mountManager(adminCode) {
+  let realCode; // undefined = loading, null = not found
+  let match = null;
+  let saveError = null;
+  let history = [];
+  let flash = null, flashTimer = null, lastEventId = null;
+  let showPlayers = false, extraMenu = null;
+  let outOpen = false, outRuns = 0, outSlot = "striker", outHow = "bowled", newBatId = "";
+
+  function render() { renderManagerBody({ realCode, match, saveError, history, flash, showPlayers, extraMenu, outOpen, outRuns, outSlot, outHow, newBatId, adminCode }); }
+
+  function pushState(m) {
+    history = [...history.slice(-25), match];
+    setLocal(m);
+    set(ref(db, matchPath(realCode)), m).catch((e) => {
+      saveError = "Save fail hua (" + e.message + "). Database Rules check karo.";
+      render();
+    });
+  }
+  function setLocal(m) {
+    match = normalizeMatch(m);
+    saveError = null;
+    const inn = m.currentInnings === 1 ? m.innings1 : m.innings2;
+    if (inn?.lastEvent && inn.lastEvent.id !== lastEventId) {
+      lastEventId = inn.lastEvent.id;
+      flash = inn.lastEvent;
+      render();
+      clearTimeout(flashTimer);
+      flashTimer = setTimeout(() => { flash = null; render(); }, 1500);
+      return;
+    }
+    render();
+  }
+
+  window.__undo = () => {
+    const prev = history.pop();
+    if (prev) {
+      match = prev;
+      saveError = null;
+      render();
+      set(ref(db, matchPath(realCode)), prev).catch((e) => { saveError = "Save fail hua (" + e.message + ")."; render(); });
+    }
+  };
+
+  function currentInnKey() { return match.currentInnings === 1 ? "innings1" : "innings2"; }
+  function currentTeamKey() { return match.currentInnings === 1 ? match.battingKey : match.bowlingKey; }
+
+  function finalize(m, key, teamKey) {
+    const endReason = inningsShouldEnd(m, m[key], teamKey);
+    if (endReason) {
+      if (m.currentInnings === 1) { m.target = m[key].runs + 1; m.status = "inningsBreak"; }
+      else { m.status = "completed"; m.result = computeResult(m); }
+    }
+    pushState(m);
+  }
+
+  window.__doDelivery = (kind, runs) => {
+    const m = clone(match);
+    const key = m.currentInnings === 1 ? "innings1" : "innings2";
+    const teamKey = m.currentInnings === 1 ? m.battingKey : m.bowlingKey;
+    applyDelivery(m, m[key], teamKey, { kind, runs: Number(runs) });
+    finalize(m, key, teamKey);
+  };
+  window.__toggleExtra = (kind) => { extraMenu = extraMenu === kind ? null : kind; render(); };
+  window.__doExtra = (kind, runs) => { window.__doDelivery(kind, runs); extraMenu = null; render(); };
+  window.__togglePlayers = () => { showPlayers = !showPlayers; render(); };
+
+  window.__openOut = () => {
+    const inn = match[currentInnKey()];
+    outRuns = 0; outSlot = "striker"; outHow = inn.freeHit ? "run out" : "bowled"; newBatId = "";
+    outOpen = true; render();
+  };
+  window.__closeOut = () => { outOpen = false; render(); };
+  window.__setOutSlot = (s) => { outSlot = s; render(); };
+  window.__setOutHow = (v) => { outHow = v; };
+  window.__setOutRuns = (r) => { outRuns = r; render(); };
+  window.__setNewBat = (v) => { newBatId = v; };
+  window.__submitOut = () => {
+    const key = currentInnKey();
+    const teamKey = currentTeamKey();
+    const inn = match[key];
+    const howSel = document.getElementById("outHowSelect");
+    if (howSel) outHow = howSel.value;
+    const batSel = document.getElementById("newBatSelect");
+    if (batSel) newBatId = batSel.value;
+    if (inn.freeHit && outHow !== "run out") { alert("Free hit par sirf run out allowed hai."); return; }
+    if (!newBatId) { alert("Naya batsman chuno."); return; }
+    const m = clone(match);
+    applyWicket(m, m[key], teamKey, { runsBeforeOut: Number(outRuns), dismissedSlot: outSlot, howOut: outHow, newBatsmanId: newBatId });
+    outOpen = false;
+    finalize(m, key, teamKey);
+  };
+
+  window.__startSecondInnings = () => {
+    const m = clone(match);
+    m.currentInnings = 2;
+    m.innings2 = newInnings(m.bowlingKey, m.battingKey, m.config.overs);
+    m.status = "openers2";
+    pushState(m);
+  };
+  window.__confirmOpeners = () => {
+    const s = document.getElementById("openerS")?.value;
+    const ns = document.getElementById("openerNS")?.value;
+    if (!s || !ns || s === ns) return;
+    const m = clone(match);
+    const inn = m.currentInnings === 1 ? m.innings1 : m.innings2;
+    inn.strikerId = s; inn.nonStrikerId = ns;
+    m.status = "live";
+    pushState(m);
+  };
+
+  window.__shareMatch = () => {
+    const url = `${location.origin}${location.pathname}#/watch/${realCode}`;
+    const text = `🏏 Cricket Scorer LIVE! Code: ${realCode}\nDekho: ${url}`;
+    if (navigator.share) navigator.share({ text, url });
+    else { navigator.clipboard?.writeText(text); alert("Link copy ho gaya:\n" + text); }
+  };
+  window.__shareAdminLink = () => {
+    const url = `${location.origin}${location.pathname}#/manage/${adminCode}`;
+    navigator.clipboard?.writeText(url);
+    alert("Apna Admin link copy ho gaya — isse tum kabhi bhi wapas isi match par aa sakte ho (khud ke paas rakho, kisi aur ko mat do):\n" + url);
+  };
+  window.__endLiveAndClear = async () => {
+    if (confirm("Live band karke is match ka data permanently delete karein?")) {
+      await remove(ref(db, matchPath(realCode)));
+      await remove(ref(db, adminPath(adminCode)));
+      location.hash = "#/";
+    }
+  };
+
+  function renderManagerBody(s) {
+    if (s.realCode === null) {
+      $app().innerHTML = `
+        <div class="card center">
+          <div class="eyebrow">Not Found</div>
+          <p>Ye admin code invalid hai ya match already khatam ho chuka hai.</p>
+          <a class="btn ghost" href="#/admin">← Wapas jao</a>
+        </div>`;
+      return;
+    }
+    if (s.realCode === undefined || !s.match) {
+      $app().innerHTML = `<div class="card center">Match load ho raha hai...</div>`;
+      return;
+    }
+    const m = s.match;
+    const errorBanner = s.saveError ? `<div class="errorBanner">${esc(s.saveError)}</div>` : "";
+
+    if (m.status === "openers1" || m.status === "openers2") {
+      const battingTeamKey = m.currentInnings === 1 ? m.battingKey : m.bowlingKey;
+      const players = m.config[battingTeamKey].players.filter((p) => !p.out);
+      $app().innerHTML = `
+        ${topBarHTML(m, { showAdminLink: true })}
+        ${errorBanner}
+        <div class="card">
+          <h3>Openers chuno — ${esc(m.config[battingTeamKey].name)}</h3>
+          <label class="lbl">Striker</label>
+          <select id="openerS" class="select">${players.map((p) => `<option value="${p.id}">${esc(p.name)}</option>`).join("")}</select>
+          <label class="lbl">Non-striker</label>
+          <select id="openerNS" class="select">${players.map((p, i) => `<option value="${p.id}" ${i === 1 ? "selected" : ""}>${esc(p.name)}</option>`).join("")}</select>
+          <button class="btn primary big" onclick="window.__confirmOpeners()">Shuru Karo</button>
+        </div>`;
+      return;
+    }
+
+    if (m.status === "inningsBreak") {
+      $app().innerHTML = `
+        ${topBarHTML(m, { showAdminLink: true })}
+        ${errorBanner}
+        <div class="card center">
+          <div class="eyebrow">Innings Break</div>
+          <div class="bigscore">${m.innings1.runs}/${m.innings1.wickets}</div>
+          <p>${esc(m.config[m.battingKey].name)} ne ${fmtOvers(m.innings1.balls)} overs me ${m.innings1.runs} banaye.</p>
+          <p class="target">${esc(m.config[m.bowlingKey].name)} ko jeetne ke liye chahiye: <b>${m.target}</b></p>
+          <button class="btn primary big" onclick="window.__startSecondInnings()">Doosri Innings Shuru Karo</button>
+        </div>`;
+      return;
+    }
+
+    if (m.status === "completed") {
+      $app().innerHTML = `
+        ${topBarHTML(m, { showAdminLink: true })}
+        ${errorBanner}
+        <div class="card center printable">
+          <div class="eyebrow">Match Khatam</div>
+          <h2>${esc(m.result)}</h2>
+          <div class="summaryGrid">
+            <div>
+              <div class="teamName">${esc(m.config[m.battingKey].name)}</div>
+              <div class="bigscore small">${m.innings1.runs}/${m.innings1.wickets} (${fmtOvers(m.innings1.balls)})</div>
+            </div>
+            <div>
+              <div class="teamName">${esc(m.config[m.bowlingKey].name)}</div>
+              <div class="bigscore small">${m.innings2.runs}/${m.innings2.wickets} (${fmtOvers(m.innings2.balls)})</div>
+            </div>
+          </div>
+          <div class="noprint rowbtns">
+            <button class="btn primary" onclick="window.print()">📄 Summary Download</button>
+            <button class="btn danger" onclick="window.__endLiveAndClear()">End Live &amp; Clear</button>
+          </div>
+        </div>`;
+      return;
+    }
+
+    const key = m.currentInnings === 1 ? "innings1" : "innings2";
+    const teamKey = m.currentInnings === 1 ? m.battingKey : m.bowlingKey;
+    const inn = m[key];
+
+    $app().innerHTML = `
+      ${topBarHTML(m, { showAdminLink: true })}
+      ${errorBanner}
+      <div class="stickyTop">${renderScoreboardHTML(m, inn, teamKey)}</div>
+      ${renderOverlayHTML(s.flash)}
+      ${inn.freeHit ? `<div class="freehit">⚡ FREE HIT — sirf run out ho sakta hai</div>` : ""}
+      <div class="keypad">
+        <div class="grid6">
+          ${[0, 1, 2, 3, 4, 6].map((r) => `<button class="ballbtn ${r === 4 ? "four" : r === 6 ? "six" : ""}" onclick="window.__doDelivery('normal',${r})">${r}</button>`).join("")}
+        </div>
+        <div class="grid4 extrasRow">
+          <button class="chip ${s.extraMenu === "wide" ? "chipActive" : ""}" onclick="window.__toggleExtra('wide')">Wide</button>
+          <button class="chip ${s.extraMenu === "noball" ? "chipActive" : ""}" onclick="window.__toggleExtra('noball')">No Ball</button>
+          <button class="chip ${s.extraMenu === "bye" ? "chipActive" : ""}" onclick="window.__toggleExtra('bye')">Bye</button>
+          <button class="chip ${s.extraMenu === "legbye" ? "chipActive" : ""}" onclick="window.__toggleExtra('legbye')">Leg Bye</button>
+        </div>
+        ${s.extraMenu ? `
+          <div class="submenu">
+            <span class="lbl">${s.extraMenu === "noball" ? "No ball — bat se kitne runs" : "Kitne runs"}</span>
+            <div class="rowbtns">
+              ${(s.extraMenu === "noball" ? [0, 1, 2, 3, 4, 6] : [0, 1, 2, 3, 4]).map((r) => `<button class="chip small" onclick="window.__doExtra('${s.extraMenu}',${r})">${r}</button>`).join("")}
+            </div>
+          </div>` : ""}
+        <div class="rowbtns bigActionsRow">
+          <button class="btn danger big" onclick="window.__openOut()">OUT</button>
+          <button class="btn ghost big" onclick="window.__undo()" ${!s.history.length ? "disabled" : ""}>↩ Undo</button>
+        </div>
+      </div>
+      <button class="collapseBtn" onclick="window.__togglePlayers()">${s.showPlayers ? "▲ Players chhupao" : "▼ Players dikhao"}</button>
+      ${s.showPlayers ? playerListHTML(m, teamKey, inn) : ""}
+      ${s.outOpen ? outModalHTML(m, teamKey, inn, s) : ""}
+    `;
+  }
+
+  function benchPlayers(m, teamKey, inn) {
+    return m.config[teamKey].players.filter((p) => !p.out && p.id !== inn.strikerId && p.id !== inn.nonStrikerId);
+  }
+  function outModalHTML(m, teamKey, inn, s) {
+    const strikerName = m.config[teamKey].players.find((p) => p.id === inn.strikerId)?.name || "";
+    const nonName = m.config[teamKey].players.find((p) => p.id === inn.nonStrikerId)?.name || "";
+    const bench = benchPlayers(m, teamKey, inn);
+    return `
+      <div class="modalBg" onclick="if(event.target===this)window.__closeOut()">
+        <div class="modal">
+          <h3>Wicket Details</h3>
+          <label class="lbl">Kaun out hua?</label>
+          <div class="rowbtns">
+            <button class="chip ${s.outSlot === "striker" ? "chipActive" : ""}" onclick="window.__setOutSlot('striker')">${esc(strikerName)} (striker)</button>
+            <button class="chip ${s.outSlot === "non" ? "chipActive" : ""}" onclick="window.__setOutSlot('non')">${esc(nonName)} (non-striker)</button>
+          </div>
+          <label class="lbl">Kaise out hua</label>
+          <select id="outHowSelect" class="select" onchange="window.__setOutHow(this.value)">
+            ${["bowled", "caught", "run out", "stumped", "hit wicket"].map((v) => `<option value="${v}" ${s.outHow === v ? "selected" : ""}>${v[0].toUpperCase() + v.slice(1)}</option>`).join("")}
+          </select>
+          <label class="lbl">Out hone se pehle kitne run bhaage</label>
+          <div class="rowbtns">
+            ${[0, 1, 2, 3].map((r) => `<button class="chip small ${s.outRuns === r ? "chipActive" : ""}" onclick="window.__setOutRuns(${r})">${r}</button>`).join("")}
+          </div>
+          <label class="lbl">Naya batsman</label>
+          <select id="newBatSelect" class="select" onchange="window.__setNewBat(this.value)">
+            <option value="">-- chuno --</option>
+            ${bench.map((p) => `<option value="${p.id}" ${s.newBatId === p.id ? "selected" : ""}>${esc(p.name)}</option>`).join("")}
+          </select>
+          <div class="rowbtns" style="margin-top:14px;">
+            <button class="btn ghost" onclick="window.__closeOut()">Cancel</button>
+            <button class="btn danger" onclick="window.__submitOut()">Confirm Out</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  render();
+  const unsubAdmin = onValue(ref(db, adminPath(adminCode)), (snap) => { realCode = snap.val() || null; render();
+    if (realCode) {
+      const unsubMatch = onValue(ref(db, matchPath(realCode)), (snap2) => { setLocal(snap2.val()); });
+      currentUnsubs.push(unsubMatch);
+    }
+  });
+  currentUnsubs.push(unsubAdmin);
+}
+
+/* ============ Viewer view (read-only live) ============ */
+function mountViewer(code) {
+  let match = null, notFound = false, flash = null, flashTimer = null, lastEventId = null;
+
+  function render() {
+    if (notFound) {
+      $app().innerHTML = `
+        <div class="card center">
+          <div class="eyebrow">Not Found</div>
+          <p>Ye match live nahi hai ya khatam ho chuka hai. Code check karo.</p>
+          <a class="btn ghost" href="#/watch">← Wapas jao</a>
+        </div>`;
+      return;
+    }
+    if (!match) { $app().innerHTML = `<div class="card center">Loading...</div>`; return; }
+
+    if (["openers1", "openers2"].includes(match.status)) {
+      $app().innerHTML = `
+        <div class="card center">
+          <div class="eyebrow">${esc(match.config.matchName)}</div>
+          <p>Manager openers select kar raha hai... ek second ruko.</p>
+        </div>`;
+      return;
+    }
+    if (match.status === "inningsBreak") {
+      $app().innerHTML = `
+        <div class="card center">
+          <div class="eyebrow">Innings Break</div>
+          <div class="bigscore">${match.innings1.runs}/${match.innings1.wickets}</div>
+          <p>${esc(match.config[match.battingKey].name)} — ${fmtOvers(match.innings1.balls)} overs</p>
+          <p class="target">Target: ${match.target}</p>
+        </div>`;
+      return;
+    }
+    if (match.status === "completed") {
+      $app().innerHTML = `
+        <div class="card center">
+          <div class="eyebrow">Match Khatam</div>
+          <h2>${esc(match.result)}</h2>
+          <div class="summaryGrid">
+            <div>
+              <div class="teamName">${esc(match.config[match.battingKey].name)}</div>
+              <div class="bigscore small">${match.innings1.runs}/${match.innings1.wickets} (${fmtOvers(match.innings1.balls)})</div>
+            </div>
+            <div>
+              <div class="teamName">${esc(match.config[match.bowlingKey].name)}</div>
+              <div class="bigscore small">${match.innings2.runs}/${match.innings2.wickets} (${fmtOvers(match.innings2.balls)})</div>
+            </div>
+          </div>
+        </div>`;
+      return;
+    }
+
+    const teamKey = match.currentInnings === 1 ? match.battingKey : match.bowlingKey;
+    const inn = match.currentInnings === 1 ? match.innings1 : match.innings2;
+
+    $app().innerHTML = `
+      <div class="topbar"><div class="matchName"><span class="liveDot"></span>${esc(match.config.matchName)}</div></div>
+      ${renderScoreboardHTML(match, inn, teamKey)}
+      ${renderOverlayHTML(flash)}
+      <div class="card">
+        <div class="eyebrow">Live Commentary</div>
+        <div class="feed">
+          ${(inn.events || []).slice(-10).reverse().map((e) => `<div class="feedRow">${esc(e.label)}</div>`).join("")}
+        </div>
+      </div>
+      ${playerListHTML(match, teamKey, inn)}
+    `;
+  }
+
+  const unsub = onValue(ref(db, matchPath(code)), (snap) => {
+    const val = snap.val();
+    if (val === null) { notFound = true; render(); return; }
+    match = normalizeMatch(val);
+    const inn = match.currentInnings === 1 ? match.innings1 : match.innings2;
+    if (inn?.lastEvent && inn.lastEvent.id !== lastEventId) {
+      lastEventId = inn.lastEvent.id;
+      flash = inn.lastEvent;
+      render();
+      clearTimeout(flashTimer);
+      flashTimer = setTimeout(() => { flash = null; render(); }, 1500);
+      return;
+    }
+    render();
+  });
+  currentUnsubs.push(unsub);
+  render();
+}
+
+mount();
+</script>
+</body>
 </html>
