@@ -4,6 +4,9 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
 <meta name="theme-color" content="#EEF2F8" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="translucent-black" />
+<meta name="mobile-web-app-capable" content="yes" />
 <title>Cricket Scorer — Live Match Center</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,16 +22,21 @@
   --cream:#1A2333; --muted:#8A94A6; --muted-2:#B2BAC7;
   --radius: 18px;
   --shadow-lift: 0 8px 28px rgba(30,41,59,0.08);
+  /* 🖼️ STADIUM BACKGROUND PHOTO — replace this URL with your own image link */
+  --stadium-bg: url('https://imglink.cc/cdn/iQnH4kc_m1.png');
 }
-*{box-sizing:border-box;}
-html,body{margin:0;background:var(--bg-0);}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html{ -webkit-text-size-adjust:100%; }
+html,body{margin:0;background:var(--bg-0); overscroll-behavior-y:contain;}
 body{
-  min-height:100vh;
+  min-height:100vh; -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
   background:
     radial-gradient(600px 400px at 12% -8%, rgba(59,130,246,0.07), transparent 60%),
     radial-gradient(600px 500px at 110% 0%, rgba(34,197,94,0.07), transparent 55%),
     var(--bg-0);
 }
+button, .btn, .chip, .ballbtn, .tabbtn{ touch-action:manipulation; user-select:none; -webkit-user-select:none; }
+input, select{ touch-action:manipulation; }
 .shell{
   max-width:480px; margin:0 auto; min-height:100vh; position:relative;
   color:var(--cream); font-family:'Inter',-apple-system,sans-serif;
@@ -36,6 +44,36 @@ body{
 }
 .shell::before{ content:none; }
 .shell > *{ position:relative; z-index:1; }
+
+.stadiumHeader{
+  margin:-14px -14px 0; padding:calc(env(safe-area-inset-top) + 14px) 16px 46px;
+  position:relative; overflow:hidden; border-radius:0 0 32px 32px;
+  background-image:
+    linear-gradient(180deg, rgba(179,214,255,0.55) 0%, rgba(196,230,214,0.55) 60%, var(--bg-0) 100%),
+    var(--stadium-bg);
+  background-size:cover; background-position:center 30%;
+  box-shadow:0 10px 30px rgba(30,60,90,0.12);
+}
+.stadiumHeader .headerRow{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+.iconBtn{
+  width:40px; height:40px; border-radius:50%; background:rgba(255,255,255,0.92);
+  border:none; display:flex; align-items:center; justify-content:center; font-size:17px;
+  box-shadow:0 4px 12px rgba(20,30,50,0.15); color:var(--cream); cursor:pointer; flex:none;
+  backdrop-filter:blur(6px); transition:transform .1s;
+}
+.iconBtn:active{ transform:scale(0.9); }
+.heroLiveRow{ text-align:center; }
+.heroLiveRow .livePill{ box-shadow:0 4px 12px rgba(239,68,68,0.35); }
+.heroMatchTitle{ text-align:center; font-family:'Inter',sans-serif; font-size:22px; font-weight:800; color:#0F1A2B; margin-top:8px; text-shadow:0 1px 2px rgba(255,255,255,0.4); }
+.heroMatchSub{ text-align:center; font-size:12px; color:rgba(15,26,43,0.6); font-weight:600; letter-spacing:0.4px; margin-top:2px; }
+.stadiumHeader.managerHeader{ padding-bottom:40px; }
+.managerHeaderRow{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.managerHeaderRow .heroMatchTitle{ text-align:left; font-size:19px; margin-top:0; }
+.managerHeaderRow .heroMatchSub{ text-align:left; margin-top:1px; }
+
+.scorecard.overlapUp, .card.overlapUp, .stickyTop.overlapUp{ margin-top:-32px; }
+@keyframes fadeSlideIn{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+.tabContent{ animation:fadeSlideIn .2s ease; }
 
 h1,h2,h3{ font-family:'Teko',sans-serif; margin:2px 0 8px; letter-spacing:0.3px; font-weight:600; }
 h1{ font-size:38px; } h2{ font-size:28px; } h3{ font-size:22px; text-transform:uppercase; letter-spacing:0.6px; color:var(--cream); }
@@ -69,8 +107,8 @@ h1{ font-size:38px; } h2{ font-size:28px; } h3{ font-size:22px; text-transform:u
 .chip.small{ flex:none; min-width:44px; }
 .chipActive{ background:var(--gold); color:#fff; border-color:var(--gold); box-shadow:0 4px 14px rgba(245,166,35,0.3); }
 
-.btn{ padding:13px 18px; border-radius:13px; border:none; font-weight:800; font-size:15px; cursor:pointer; font-family:'Inter',sans-serif; transition:transform .08s, opacity .15s; letter-spacing:0.2px; }
-.btn:active{ transform:scale(0.97); }
+.btn{ padding:13px 18px; border-radius:13px; border:none; font-weight:800; font-size:15px; cursor:pointer; font-family:'Inter',sans-serif; transition:transform .08s ease, opacity .15s, box-shadow .08s; letter-spacing:0.2px; }
+.btn:active{ transform:scale(0.96); }
 .btn.primary{ background:linear-gradient(180deg,#4C9EF0,var(--sky)); color:#fff; box-shadow:0 8px 22px rgba(59,130,246,0.28); }
 .btn.danger{ background:linear-gradient(180deg,#F87171,var(--crimson)); color:#fff; box-shadow:0 8px 22px rgba(239,68,68,0.22); }
 .btn.ghost{ background:#fff; color:var(--cream); border:1px solid var(--border-strong); box-shadow:0 1px 3px rgba(20,30,50,0.04); }
@@ -88,7 +126,7 @@ h1{ font-size:38px; } h2{ font-size:28px; } h3{ font-size:22px; text-transform:u
 .pill{ display:inline-block; font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px; vertical-align:middle; margin-left:6px; }
 .pillGreen{ background:rgba(34,197,94,0.14); color:#16803C; }
 
-.stickyTop{ position:sticky; top:54px; z-index:15; }
+.stickyTop{ position:sticky; top:calc(env(safe-area-inset-top) + 8px); z-index:15; }
 
 .scorecard{
   position:relative; border-radius:20px; padding:20px 18px; text-align:center; margin-bottom:12px;
@@ -117,8 +155,8 @@ h1{ font-size:38px; } h2{ font-size:28px; } h3{ font-size:22px; text-transform:u
 
 .keypad{ background:transparent; border:none; border-radius:20px; padding:0; margin-bottom:10px; }
 .grid6{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:10px; }
-.ballbtn{ padding:22px 0; font-size:26px; font-family:'Inter',sans-serif; font-weight:800; border-radius:16px; border:1px solid var(--border-strong); background:#fff; color:var(--cream); transition:transform .08s; box-shadow:0 2px 8px rgba(20,30,50,0.05); }
-.ballbtn:active{ transform:scale(0.93); }
+.ballbtn{ padding:22px 0; font-size:26px; font-family:'Inter',sans-serif; font-weight:800; border-radius:16px; border:1px solid var(--border-strong); background:#fff; color:var(--cream); transition:transform .09s ease, box-shadow .09s; box-shadow:0 2px 8px rgba(20,30,50,0.05); }
+.ballbtn:active{ transform:scale(0.91); box-shadow:0 1px 3px rgba(20,30,50,0.08); }
 .ballbtn.four{ background:linear-gradient(160deg,#5FA8F5,var(--sky)); color:#fff; border-color:transparent; box-shadow:0 6px 16px rgba(59,130,246,0.3); }
 .ballbtn.six{ background:linear-gradient(160deg,#3DDC79,var(--grass)); color:#fff; border-color:transparent; box-shadow:0 6px 16px rgba(34,197,94,0.3); }
 .extrasRow{ margin-bottom:6px; }
@@ -195,9 +233,11 @@ h1{ font-size:38px; } h2{ font-size:28px; } h3{ font-size:22px; text-transform:u
   padding:8px 4px calc(8px + env(safe-area-inset-bottom));
   box-shadow:0 -4px 20px rgba(20,30,50,0.06);
 }
-.tabbtn{ background:none; border:none; display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--muted); font-size:11px; font-weight:600; padding:6px 10px; cursor:pointer; font-family:'Inter',sans-serif; }
-.tabbtn span:first-child{ font-size:19px; line-height:1; }
+.tabbtn{ background:none; border:none; display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--muted); font-size:11px; font-weight:600; padding:6px 14px; cursor:pointer; font-family:'Inter',sans-serif; transition:color .15s, transform .1s; border-radius:12px; }
+.tabbtn:active{ transform:scale(0.92); background:var(--surface-2); }
+.tabbtn span:first-child{ font-size:19px; line-height:1; transition:transform .15s; }
 .tabbtn.tabActive{ color:var(--grass); }
+.tabbtn.tabActive span:first-child{ transform:translateY(-1px) scale(1.08); }
 
 @media print{
   .noprint,.keypad,.collapseBtn,.tabbar{ display:none; }
@@ -267,6 +307,13 @@ function creditBatsman(match, teamKey, playerId, runs, ballFaced) {
 let __audioCtx = null;
 function playEventSound(kind) {
   if (kind !== "six" && kind !== "four" && kind !== "out") return;
+  try {
+    if (navigator.vibrate) {
+      if (kind === "six") navigator.vibrate([40, 30, 40, 30, 80]);
+      else if (kind === "four") navigator.vibrate([40, 30, 60]);
+      else if (kind === "out") navigator.vibrate([90, 40, 90]);
+    }
+  } catch (e) {}
   try {
     __audioCtx = __audioCtx || new (window.AudioContext || window.webkitAudioContext)();
     if (__audioCtx.state === "suspended") __audioCtx.resume();
@@ -537,6 +584,18 @@ function commentaryTabHTML(inn) {
       </div>
     </div>`;
 }
+function viewerHeaderHTML(matchName, opts) {
+  opts = opts || {};
+  return `
+    <div class="stadiumHeader">
+      <div class="headerRow">
+        <button class="iconBtn" onclick="location.hash='#/watch'" title="Wapas jao">←</button>
+        <button class="iconBtn" onclick="window.__setTab && window.__setTab('info')" title="Match Info">⚙️</button>
+      </div>
+      ${opts.live !== false ? `<div class="heroLiveRow"><span class="livePill"><span class="liveDot"></span>LIVE</span></div>` : ""}
+      <div class="heroMatchTitle">${esc(matchName)}</div>
+    </div>`;
+}
 function infoTabHTML(m, opts) {
   opts = opts || {};
   const toss = m.config.toss;
@@ -557,14 +616,19 @@ function infoTabHTML(m, opts) {
 }
 function topBarHTML(match, opts) {
   return `
-    <div class="topbar">
-      <div>
-        <div class="matchName"><span class="liveDot"></span>${esc(match.config.matchName)}</div>
-        <div class="code">CODE: <b>${esc(match.code)}</b></div>
+    <div class="stadiumHeader managerHeader">
+      <div class="headerRow">
+        <button class="iconBtn" onclick="location.hash='#/'" title="Wapas jao">←</button>
+        <div class="rowbtns" style="gap:6px;">
+          ${opts?.showAdminLink ? `<button class="btn ghost small" onclick="window.__shareAdminLink()" title="Apna resume-link save karo">🔑 Admin</button>` : ""}
+          <button class="btn ghost small" onclick="window.__shareMatch()">↗ Share</button>
+        </div>
       </div>
-      <div class="rowbtns" style="gap:6px;">
-        ${opts?.showAdminLink ? `<button class="btn ghost small" onclick="window.__shareAdminLink()" title="Apna resume-link save karo">🔑 Admin</button>` : ""}
-        <button class="btn ghost small" onclick="window.__shareMatch()">Share</button>
+      <div class="managerHeaderRow">
+        <div>
+          <div class="heroMatchTitle"><span class="liveDot"></span>${esc(match.config.matchName)}</div>
+          <div class="heroMatchSub">CODE: ${esc(match.code)}</div>
+        </div>
       </div>
     </div>`;
 }
@@ -840,6 +904,7 @@ function mountManager(adminCode) {
   }
 
   window.__doDelivery = (kind, runs) => {
+    if (navigator.vibrate) try { navigator.vibrate(12); } catch (e) {}
     const m = clone(match);
     const key = m.currentInnings === 1 ? "innings1" : "innings2";
     const teamKey = m.currentInnings === 1 ? m.battingKey : m.bowlingKey;
@@ -960,7 +1025,7 @@ function mountManager(adminCode) {
       $app().innerHTML = `
         ${topBarHTML(m, { showAdminLink: true })}
         ${errorBanner}
-        <div class="card">
+        <div class="card overlapUp">
           <h3>Openers chuno — ${esc(m.config[battingTeamKey].name)}</h3>
           <label class="lbl">Striker</label>
           <select id="openerS" class="select">${players.map((p) => `<option value="${p.id}">${esc(p.name)}</option>`).join("")}</select>
@@ -975,7 +1040,7 @@ function mountManager(adminCode) {
       $app().innerHTML = `
         ${topBarHTML(m, { showAdminLink: true })}
         ${errorBanner}
-        <div class="card center">
+        <div class="card center overlapUp">
           <div class="eyebrow">Innings Break</div>
           <div class="bigscore">${m.innings1.runs}/${m.innings1.wickets}</div>
           <p>${esc(m.config[m.battingKey].name)} ne ${fmtOvers(m.innings1.balls)} overs me ${m.innings1.runs} banaye.</p>
@@ -989,7 +1054,7 @@ function mountManager(adminCode) {
       $app().innerHTML = `
         ${topBarHTML(m, { showAdminLink: true })}
         ${errorBanner}
-        <div class="card center printable">
+        <div class="card center printable overlapUp">
           <div class="eyebrow">Match Khatam</div>
           <h2>${esc(m.result)}</h2>
           <div class="summaryGrid">
@@ -1017,8 +1082,9 @@ function mountManager(adminCode) {
     $app().innerHTML = `
       ${topBarHTML(m, { showAdminLink: true })}
       ${errorBanner}
-      <div class="stickyTop">${renderScoreboardHTML(m, inn, teamKey)}</div>
+      <div class="stickyTop overlapUp">${renderScoreboardHTML(m, inn, teamKey)}</div>
       ${renderOverlayHTML(s.flash)}
+      <div class="tabContent">
       ${s.activeTab === "score" ? `
       ${inn.freeHit ? `<div class="freehit">⚡ FREE HIT — sirf run out ho sakta hai</div>` : ""}
       <div class="keypad">
@@ -1046,6 +1112,7 @@ function mountManager(adminCode) {
       ${s.activeTab === "players" ? playerListHTML(m, teamKey, inn, { editable: true }) : ""}
       ${s.activeTab === "commentary" ? commentaryTabHTML(inn) : ""}
       ${s.activeTab === "info" ? infoTabHTML(m, { showAdmin: true }) : ""}
+      </div>
       ${s.outOpen ? outModalHTML(m, teamKey, inn, s) : ""}
       ${tabBarHTML(s.activeTab)}
     `;
@@ -1118,15 +1185,17 @@ function mountViewer(code) {
 
     if (["openers1", "openers2"].includes(match.status)) {
       $app().innerHTML = `
-        <div class="card center">
-          <div class="eyebrow">${esc(match.config.matchName)}</div>
+        ${viewerHeaderHTML(match.config.matchName)}
+        <div class="card center overlapUp">
+          <div class="eyebrow">Ruko...</div>
           <p>Manager openers select kar raha hai... ek second ruko.</p>
         </div>`;
       return;
     }
     if (match.status === "inningsBreak") {
       $app().innerHTML = `
-        <div class="card center">
+        ${viewerHeaderHTML(match.config.matchName)}
+        <div class="card center overlapUp">
           <div class="eyebrow">Innings Break</div>
           <div class="bigscore">${match.innings1.runs}/${match.innings1.wickets}</div>
           <p>${esc(match.config[match.battingKey].name)} — ${fmtOvers(match.innings1.balls)} overs</p>
@@ -1136,7 +1205,8 @@ function mountViewer(code) {
     }
     if (match.status === "completed") {
       $app().innerHTML = `
-        <div class="card center">
+        ${viewerHeaderHTML(match.config.matchName, { live: false })}
+        <div class="card center overlapUp">
           <div class="eyebrow">Match Khatam</div>
           <h2>${esc(match.result)}</h2>
           <div class="summaryGrid">
@@ -1157,12 +1227,14 @@ function mountViewer(code) {
     const inn = match.currentInnings === 1 ? match.innings1 : match.innings2;
 
     $app().innerHTML = `
-      <div class="topbar"><div><div class="livePill"><span class="liveDot"></span>LIVE</div><div class="matchName" style="margin-top:4px;">${esc(match.config.matchName)}</div></div></div>
-      ${renderScoreboardHTML(match, inn, teamKey)}
+      ${viewerHeaderHTML(match.config.matchName)}
+      <div class="stickyTop overlapUp">${renderScoreboardHTML(match, inn, teamKey)}</div>
       ${renderOverlayHTML(flash)}
+      <div class="tabContent">
       ${activeTab === "score" || activeTab === "commentary" ? commentaryTabHTML(inn) : ""}
       ${activeTab === "players" ? playerListHTML(match, teamKey, inn) : ""}
       ${activeTab === "info" ? infoTabHTML(match) : ""}
+      </div>
       ${tabBarHTML(activeTab)}
     `;
   }
