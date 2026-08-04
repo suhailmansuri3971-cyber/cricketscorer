@@ -49,7 +49,7 @@ input, select{ touch-action:manipulation; }
   margin:-14px -14px 0; padding:calc(env(safe-area-inset-top) + 14px) 16px 46px;
   position:relative; overflow:hidden; border-radius:0 0 32px 32px;
   background-image:
-    linear-gradient(180deg, rgba(179,214,255,0.55) 0%, rgba(196,230,214,0.55) 60%, var(--bg-0) 100%),
+    linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.1) 50%, var(--bg-0) 100%),
     var(--stadium-bg);
   background-size:cover; background-position:center 30%;
   box-shadow:0 10px 30px rgba(30,60,90,0.12);
@@ -214,6 +214,13 @@ h1{ font-size:38px; } h2{ font-size:28px; } h3{ font-size:22px; text-transform:u
 @keyframes confettiFall{ 0%{transform:translateY(-20px) rotate(0deg); opacity:1;} 100%{transform:translateY(480px) rotate(720deg); opacity:0;} }
 
 .heroWrap{ min-height:92vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:20px 6px; }
+.heroStadiumBg{
+  margin:-14px -14px 0; height:300px; position:relative; overflow:hidden; border-radius:0 0 32px 32px;
+  background-image:
+    linear-gradient(180deg, rgba(255,255,255,0) 40%, rgba(238,242,248,0.5) 78%, var(--bg-0) 100%),
+    var(--stadium-bg);
+  background-size:cover; background-position:center 32%;
+}
 .heroTop{ margin-bottom:30px; }
 .heroBall{ font-size:56px; margin-bottom:10px; animation:floatBall 2.6s ease-in-out infinite; filter:drop-shadow(0 10px 20px rgba(245,166,35,0.25)); }
 @keyframes floatBall{ 0%,100%{transform:translateY(0) rotate(0deg);} 50%{transform:translateY(-12px) rotate(12deg);} }
@@ -487,7 +494,7 @@ function renderScoreboardHTML(match, inn, teamKey) {
       <div class="ledscore">${inn.runs}<span class="slash">/</span>${inn.wickets}</div>
       ${match.currentInnings === 2 ? `<div class="target">Target: ${match.target}  |  Chahiye: ${Math.max(match.target - inn.runs, 0)} runs</div>` : ""}
       <div class="batsmen">
-        <span class="batName">✏️ ${esc(striker?.name || "-")}*</span>
+        <span class="batName">🏏 ${esc(striker?.name || "-")}*</span>
         <span class="batScore">${striker?.runs || 0} (${striker?.balls || 0})</span>
       </div>
       <div class="batsmen">
@@ -540,7 +547,7 @@ function playerListHTML(match, teamKey, inn, opts) {
       <div class="players">
         ${players.map((p) => `
           <div class="playerRow ${p.out ? "out" : ""} ${key === teamKey && (p.id === inn.strikerId || p.id === inn.nonStrikerId) ? "batting" : ""}">
-            <span class="pname">${esc(p.name)}${key === teamKey && p.id === inn.strikerId ? " ✏️" : ""}${p.out ? ` <span class="dismissText">out (${esc(p.dismissal)})</span>` : ""}</span>
+            <span class="pname">${esc(p.name)}${key === teamKey && p.id === inn.strikerId ? " 🏏" : ""}${p.out ? ` <span class="dismissText">out (${esc(p.dismissal)})</span>` : ""}</span>
             <span class="pscore">${p.runs || 0} (${p.balls || 0})</span>
           </div>`).join("")}
       </div>
@@ -653,7 +660,8 @@ window.addEventListener("hashchange", mount);
 /* ============ Watch code entry (default landing) ============ */
 function mountWatchEntry() {
   $app().innerHTML = `
-    <div class="heroWrap">
+    <div class="heroStadiumBg"></div>
+    <div class="heroWrap" style="margin-top:-120px; min-height:auto;">
       <div class="heroTop">
         <div class="heroBall">🏏</div>
         <div class="eyebrow">Live Match Center</div>
